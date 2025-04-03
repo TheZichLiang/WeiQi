@@ -1,0 +1,57 @@
+.boardContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: gray;
+}
+
+.title{
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8vh;
+}
+
+.formContainer{
+    position: relative;
+    top: 30%;
+}
+
+.buttonGroup{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+}
+
+.radioContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    width: 100%;
+}
+
+.input[type="radio"] {
+    position: absolute;
+    margin-left: 10%;
+    transform: translateX(-50%);
+    width: 3vw;
+    height: 3vh;
+    cursor: pointer;
+     
+}
+
+.img {
+    display: block;
+    width: 25vw;
+    margin-top: 10%;
+}
+
+.label{
+    text-align: center;
+    font-size: 5vh;
+    font-weight: bold;
+    display: block;
+}
