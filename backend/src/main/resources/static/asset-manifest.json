@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/static/css/main.918fa33a.css",
+    "main.js": "/static/js/main.8c448516.js",
+    "static/media/GOBACKGROUND.png": "/static/media/GOBACKGROUND.7e24ea275c7c14115dd0.png",
+    "static/media/GORULES.png": "/static/media/GORULES.3d81e341d817552ab932.png",
+    "index.html": "/index.html",
+    "main.918fa33a.css.map": "/static/css/main.918fa33a.css.map",
+    "main.8c448516.js.map": "/static/js/main.8c448516.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.918fa33a.css",
+    "static/js/main.8c448516.js"
+  ]
+}
