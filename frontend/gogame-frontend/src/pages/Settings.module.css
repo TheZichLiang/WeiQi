@@ -1,0 +1,40 @@
+.settingContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: gray;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.title {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8vh;
+}
+
+.formContainer {
+    display: flex;
+    flex-direction: column; 
+    margin-top: 15%;
+}
+
+.buttonGroup{
+    display: flex; 
+    align-items: center;
+    margin-top: 5vh; 
+}
+
+.input[type="radio"] {
+    width: 3vw;
+    height: 3vh;
+    margin-right: 10px; 
+}
+
+.label {
+    font-size: 5vh;
+    font-weight: bold;
+}
