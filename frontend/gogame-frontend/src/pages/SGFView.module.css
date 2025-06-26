@@ -1,0 +1,169 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: gray;
+  gap: 40px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.controls-left,
+.controls-center,
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rectButton {
+  height: 40px;
+  padding: 0 15px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.rectButton:hover:not(:disabled) {
+  background-color: #666;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.dropdownLabel {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #333;
+  text-align: center;
+  width: 100%;
+}
+
+.dropdown {
+  font-size: 16px;
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.iconButton:hover {
+  transform: scale(1.2);
+}
+
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.boardWrapper {
+  position: relative;
+  max-width: 90vmin;
+  max-height: 90vmin;
+  width: 90vmin;
+  height: 90vmin;
+}
+
+.boardimg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.stone {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.moveCounter {
+  font-size: 18px;
+  margin-top: 10px;
+  color: #333;
+  font-weight: 500;
+}
+
+.marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: 0;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.marker.black {
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 12px solid yellow;
+}
+
+.marker.white {
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 12px solid red;
+}
+
+/* Manual mode styling */
+.stoneContainer {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.stoneOutline {
+  border: 3px solid blue;
+  border-radius: 50%;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.turnNumber {
+  position: absolute;
+  color: red;
+  font-weight: bold;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+}

@@ -28,16 +28,16 @@ function Go() {
   const [whiteScore, setWhiteScore] = useState(0);
   const [aiMessage, setAiMessage] = useState('');
   const [showScores, setShowScores] = useState(false);
-  const [showTurnNumbers, setShowTurnNumbers] = useState(true);
+  const [showTurnNumbers, setShowTurnNumbers] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-
+  
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const baseUrl = process.env.REACT_APP_BASE_URL;
 
   useEffect(() => {
     const startGame = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/playgo/startgame`, {
+        const response = await fetch(`${apiBaseUrl}/startgame`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ function Go() {
     }
   }, [gameOver]);
 
-  function findNearestIdx(x, y, intersections, threshold = 0.5) {
+  function findNearestIdx(x, y, intersections, threshold = 0.8) {
     let minDistance = Infinity;
     let nearestIndex = -1;
 
@@ -165,9 +165,6 @@ function Go() {
     if (gameOver) {
       setAiMessage("Game is over.")
       return;
-    }else if (!showTurnNumbers) {
-      setAiMessage('User moves are not allowed while scores are displayed. Please click the VIEW SCORE button again.');
-      return;
     }else if (currentStone=== 'white'){
       setAiMessage("Moves are not allowed before AI moves.");
       return;
@@ -175,7 +172,7 @@ function Go() {
     const nearestIntersection = handleBoardClick(event, intersections);
     if (nearestIntersection !== null) {
       try {
-        const response = await fetch(`${apiBaseUrl}/playgo/usermove`, {
+        const response = await fetch(`${apiBaseUrl}/usermove`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -222,7 +219,7 @@ function Go() {
 
   const handleAIMove = async (newBoardState) => {
     try {
-      const response = await fetch(`${apiBaseUrl}/playgo/aimove`, {
+      const response = await fetch(`${apiBaseUrl}/aimove`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -277,15 +274,12 @@ function Go() {
     if (gameOver) {
       setAiMessage("Game is over.")
       return;
-    }else if (!showTurnNumbers) {
-      setAiMessage('Passes are not allowed while scores are displayed. Please click the VIEW SCORE button again.');
-      return;
     }else if (currentStone=== 'white'){
       setAiMessage("Moves are not allowed until AI moves.");
       return;
     }
     try {
-      const response = await fetch(`${apiBaseUrl}/playgo/usermove`, {
+      const response = await fetch(`${apiBaseUrl}/usermove`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -316,15 +310,12 @@ function Go() {
     if (gameOver) {
       setAiMessage("Game is over.")
       return;
-    }else if (!showTurnNumbers) {
-      setAiMessage('Resigns are not allowed while scores are displayed. Please click the VIEW SCORE button again.');
-      return;
     }else if (currentStone!== 'black'){
       setAiMessage("Moves are not allowed before AI moves.");
       return;
     }
     try {
-      const response = await fetch(`${apiBaseUrl}/playgo/usermove`, {
+      const response = await fetch(`${apiBaseUrl}/usermove`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -344,14 +335,16 @@ function Go() {
     }
   };
 
-  
+  const handleTurnToggle = () => {
+    setShowTurnNumbers(!showTurnNumbers);
+  };
+
   const handleScoreClick = async () => {
     if (showScores) {
       setShowScores(false);
-      setShowTurnNumbers(true);
     }else{
       try {
-        const response = await fetch(`${apiBaseUrl}/playgo/scoring`, {
+        const response = await fetch(`${apiBaseUrl}/scoring`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -371,7 +364,6 @@ function Go() {
               setAiMessage(`${data.winner} wins by ${data.winningMargin} points!`);
             }
             setShowScores(true);
-            setShowTurnNumbers(false);
           }
         } else {
           throw new Error('Failed to get scores. Please try again.');
@@ -437,72 +429,79 @@ function Go() {
         <div className={Gostyles.buttonsContainer}>
           <button className= {Gostyles.buttonNormal} onClick={handlePass}>PASS</button>
           <button className= {Gostyles.buttonNormal} onClick={handleResign}>RESIGN</button>
-          <button className= {Gostyles.buttonScore} onClick={handleScoreClick}> VIEW SCORE</button>
+          <button className={Gostyles.buttonNormal} onClick={handleTurnToggle}>
+            {showTurnNumbers ? 'HIDE TURNS' : 'SHOW TURNS'}
+          </button>
+          <button className={Gostyles.buttonScore} onClick={handleScoreClick}>
+            {showScores ? 'HIDE SCORE' : 'VIEW SCORE'}
+          </button>
         </div>
       </div>
       {gameStarted && boardImage && (
         <div className={Gostyles.bottomMiddle}>
-          <img ref={boardRef}
-            src={boardImage}
-            alt={`Go board size ${boardSize}`}
-            className={Gostyles.boardimg}
-            onClick={handleUserMove}
-            onLoad={handleImageLoad}
-          />
-          {intersections.map((intersection, index) => {
-            const pixelCoord = getClientPixels(intersection.gridCol, intersection.gridRow);
-            return (
-              boardState[index] && (
-                <div key={index} className= {`${Gostyles.stoneContainer} ${index === latestMoveIdx ? Gostyles.stoneOutline : ''}`} style={{
-                  top: `${pixelCoord.y}px`,
-                  left: `${pixelCoord.x}px`,
-                  width: `${cellSize.width * 0.9}px`,
-                  height: `${cellSize.height * 0.9}px`
-                }}>
-                <img
-                  src={boardState[index].stone === 'black' ? `${baseUrl}/assets/GOBLACKSTONE.png` : `${baseUrl}/assets/GOWHITESTONE.png`}
-                  className={Gostyles.stone}
-                  alt={boardState[index].stone}
+          <div className={Gostyles.boardWrapper}>
+            <img ref={boardRef}
+              src={boardImage}
+              alt={`Go board size ${boardSize}`}
+              className={Gostyles.boardimg}
+              onClick={handleUserMove}
+              onLoad={handleImageLoad}
+            />
+            {intersections.map((intersection, index) => {
+              const pixelCoord = getClientPixels(intersection.gridCol, intersection.gridRow);
+              return (
+                boardState[index] && (
+                  <div key={index} className= {`${Gostyles.stoneContainer} ${index === latestMoveIdx ? Gostyles.stoneOutline : ''}`} style={{
+                    top: `${pixelCoord.y}px`,
+                    left: `${pixelCoord.x}px`,
+                    width: `${cellSize.width * 0.9}px`,
+                    height: `${cellSize.height * 0.9}px`
+                  }}>
+                  <img
+                    src={boardState[index].stone === 'black' ? `${baseUrl}/assets/GOBLACKSTONE.png` : `${baseUrl}/assets/GOWHITESTONE.png`}
+                    className={Gostyles.stone}
+                    alt={boardState[index].stone}
+                  />
+                  {showTurnNumbers && (
+                    <span className={Gostyles.turnNumber} style={{ fontSize: `${cellSize.height * 0.3}px` }}>
+                      {boardState[index].turn}
+                    </span>
+                  )}
+                </div>
+                )
+              );
+            })}
+            {showScores && blackTerritory.map((coord, index) => {
+              const pixelCoord = getClientPixels(coord.col, coord.row);
+              return pixelCoord && (
+                <div
+                  key={`black-${index}`}
+                  className={Gostyles.blackTerritory}
+                  style={{
+                    top: `${pixelCoord.y}px`,
+                    left: `${pixelCoord.x}px`,
+                    width: `${cellSize.width * 0.25}px`,
+                    height: `${cellSize.height * 0.25}px`
+                  }}
                 />
-                {showTurnNumbers && (
-                  <span className={Gostyles.turnNumber} style={{ fontSize: `${cellSize.height * 0.3}px` }}>
-                    {boardState[index].turn}
-                  </span>
-                )}
-              </div>
-              )
-            );
-          })}
-          {showScores && blackTerritory.map((coord, index) => {
-            const pixelCoord = getClientPixels(coord.col, coord.row);
-            return pixelCoord && (
-              <div
-                key={`black-${index}`}
-                className={Gostyles.blackTerritory}
-                style={{
-                  top: `${pixelCoord.y}px`,
-                  left: `${pixelCoord.x}px`,
-                  width: `${cellSize.width * 0.25}px`,
-                  height: `${cellSize.height * 0.25}px`
-                }}
-              />
-            );
-          })}
-          {showScores && whiteTerritory.map((coord, index) => {
-            const pixelCoord = getClientPixels(coord.col, coord.row);
-            return pixelCoord && (
-              <div
-                key={`white-${index}`}
-                className={Gostyles.whiteTerritory}
-                style={{
-                  top: `${pixelCoord.y}px`,
-                  left: `${pixelCoord.x}px`,
-                  width: `${cellSize.width * 0.25}px`,
-                  height: `${cellSize.height * 0.25}px`
-                }}
-              />
-            );
-          })}
+              );
+            })}
+            {showScores && whiteTerritory.map((coord, index) => {
+              const pixelCoord = getClientPixels(coord.col, coord.row);
+              return pixelCoord && (
+                <div
+                  key={`white-${index}`}
+                  className={Gostyles.whiteTerritory}
+                  style={{
+                    top: `${pixelCoord.y}px`,
+                    left: `${pixelCoord.x}px`,
+                    width: `${cellSize.width * 0.25}px`,
+                    height: `${cellSize.height * 0.25}px`
+                  }}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
       <div className={Gostyles.bottomRight}>

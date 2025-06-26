@@ -6,7 +6,7 @@ export const useGameState = () => useContext(GameStateContext);
 
 export const GameStateProvider = ({ children }) => {
   const [boardSize, setBoardSize] = useState('19');
-  const [aiLevel, setAiLevel] = useState('beginner');
+  const [aiLevel, setAiLevel] = useState('sdk');
 
   const value = {
     boardSize,
