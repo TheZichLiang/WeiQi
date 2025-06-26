@@ -4,55 +4,41 @@
 
 ---
 
-## About the Project
+## 🧠 About the Project
 
-WeiQi (Go) is a famous historical Chinese board game, played on standard 9x9, 13x13, or 19x19 boards (Goban) with the goal of capturing more territory than your opponent.
-This web app simulates real-time gameplay against AI agents with 5 difficulty levels, ranging from beginner to professional level play.
+WeiQi (Go) is one of the oldest board games in the world, originating in China over 2,500 years ago. The game is played on a 9×9, 13×13, or 19×19 Goban, where the objective is to control more territory than your opponent.
 
-📜 Inspired by *"Deep Learning and the Game of Go"* by Max Pumperla & Kevin Ferguson and AlphaZero https://arxiv.org/pdf/1712.01815
+This web app simulates real-time Go gameplay against AI agents of different strengths, enabling both casual play and serious training.
+
+📜 Inspired by *"Deep Learning and the Game of Go"* by Max Pumperla & Kevin Ferguson and [AlphaZero](https://arxiv.org/pdf/1712.01815)
 
 ---
 
-## AI Agent Difficulty Levels
+## 🤖 AI Agents
 
-|  Bot Name         |  Difficulty Level         |  Algorithm / Description |
-|--------------------|-----------------------------|----------------------------|
-| `BeginnerBot`      | 🟢 Beginner (30–20k)         | Random legal moves only. No strategy. |
-| `AlphaBetaBot`     | 🟡 Double Digit Kyu (19–10k) | Alpha-Beta Pruning with capturing heuristic. |
-| `MonteCarloBot`    | 🔵 Single Digit Kyu (9–1k)   | Monte Carlo Tree Search (MCTS). |
-| `DeepNeuralBot`    | 🟣 Low Dan (1–7d)            | Deep Neural Network + Search (Planned). |
-| `VisionLangBot`    | 🔴 High Dan (1–9p)           | Vision-Language Model + Search (Planned). |
+WeiQi supports two AI agents, enabling scalable difficulty from beginner to advanced amateur level play.
+
+| Bot Name      | Difficulty Range        | Description |
+|---------------|--------------------------|-------------|
+| `BeginnerBot` | 🟢 Beginner (30–20 kyu)   | Picks random legal moves. No strategy or evaluation. |
+| `GPT2Bot`     | 🔴 SDK to High Dan (9k–9p) | Transformer-based agent trained on professional SGF games. Scales in strength via decoding parameters. |
 
 <details>
-<summary><strong>Click to expand agent descriptions</strong></summary>
+<summary><strong>Click to expand AI details</strong></summary>
 
-### BeginnerBot
-- Picks a random legal move.
-- No evaluation performed.
+### 🟢 BeginnerBot
+- Selects random legal moves without strategic evaluation.
+- Ideal for new players or debugging.
 
-### AlphaBetaBot
-- Uses Minimax + Alpha-Beta Pruning.
-- Evaluates moves by:
-  - Exploring move trees to a fixed depth.
-  - Prioritizing moves that capture opponent stones.
-  - Avoiding unproductive branches via pruning.
-
-### MonteCarloBot
-- Uses MCTS with the 4-step process:
-  1. **Selection:** Traverse using UCT.
-  2. **Expansion:** Add new random child node.
-  3. **Simulation:** Roll out games with BeginnerBot.
-  4. **Backpropagation:** Update stats recursively.
-- Selects move with highest win rate after the rollouts.
-
-### DeepNeuralBot (Planned)
-- CNN or GNN-based evaluation.
-- Faster search via heuristic guidance.
-
-### VisionLangBot (Planned)
-- Vision-Language model to understand patterns.
-- Paired with classical search (e.g., MCTS, Alpha-Beta).
-- Intended to simulate professional play quality.
+### 🔴 GPT2Bot
+- Powered by a fine-tuned GPT-2 model trained on thousands of SGF-formatted professional Go games.
+- Treats board positions as token sequences, learning tactical and strategic patterns like a language model.
+- Scales in strength by adjusting:
+  - 🔥 **Decoding temperature** (controls randomness)
+  - 🧠 **Move filtering** (filters out weak/legal-only moves)
+  - 🎲 **Top-k / Top-p sampling** (controls search breadth)
+- Replaces the need for multiple classical AI systems like MCTS or CNNs.
+- Integration: `GPT2Client.java` (Spring Boot) ↔ `GPT2Predict.py` (Python)
 
 </details>
 
@@ -61,6 +47,7 @@ This web app simulates real-time gameplay against AI agents with 5 difficulty le
 ## 🖥️ Client–Server Architecture
 
 ```plaintext
-Frontend   <--->   Backend   <--->   (Future) Database
- ReactJS              Java              PostgreSQL or MongoDB
- HTML/CSS         Spring Boot              (planned)
+Frontend (React)    <--->    Backend (Spring Boot)    <--->    (Planned) Database
+    |                                |                               |
+HTML/CSS/JS                Game Logic, AI Agents          PostgreSQL for multiplayer,
+                             GPT2Bot, SGF parsing           login, and match records

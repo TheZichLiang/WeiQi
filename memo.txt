@@ -1,0 +1,38 @@
+# Configuring Backend EC2
+
+Login to Amazon web services:
+    1. Create a key pair name and via .pem file, download it, then drag it into vscode.
+    2. Set up security groups with these inbound rules:
+        Custom TCP TCP 8080 0.0.0.0/0
+        SSH TCP 22 71.179.18.117/32
+        HTTPS TCP 443 0.0.0.0/0
+        HTTP TCP 80 0.0.0.0/0
+    3. Launch an instance then copy over the public ipv4 dns address
+
+Configure the .pem file with this command:
+    scp -i path/to/your-key.pem path/to/your-backend.jar ec2-user@<your-public-ip>:/home/ec2-user/
+
+1. Go to application.properties and get rid of the database related lines
+2. Go to .env and replace REACT_APP_API_BASE_URL with the public ipv4 dns address
+3. Rebuild the frontend with npm run build
+4. sftp into the frontend server for terpconnect -> sftp zliang14@terpconnect.umd.edu
+5. Go to the cd ../pub/gogame, then put -r build/* .
+6. ssh into the backend server for ec2 ssh -i path/to/your-key.pem ec2-user@your-ec2-public-address-ipv4
+6. execute the jar file
+
+how to configure the nginx to listen to port 443 HTTPS
+ -> Put these into the server block of HTTPS
+
+    Replace with these lines:
+        ssl_certificate /etc/ssl/certs/selfsigned.crt;
+        ssl_certificate_key /etc/ssl/private/selfsigned.key;
+
+    Add these lines
+    
+    location /playgo/ {
+        proxy_pass http://localhost:8080/playgo/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
