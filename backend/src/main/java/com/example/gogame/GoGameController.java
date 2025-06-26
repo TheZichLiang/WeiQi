@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "https://terpconnect.umd.edu/")
+@RequestMapping("/api")
+@CrossOrigin(origins = "https://tyderoom.com")
 public class GoGameController {
 
     private GameState boardXY;
@@ -25,28 +27,41 @@ public class GoGameController {
         return "Welcome to the Backend API!";
     }
 
-    @PostMapping("/playgo/startgame")
+    @PostMapping("/startgame")
     public ResponseEntity<?> startGame(@RequestBody Map<String, Object> jsonObject) {
         String boardSize = (String) jsonObject.get("boardSize");
         String aiLevel = (String) jsonObject.get("aiLevel");
         size = Integer.parseInt(boardSize);
         boardXY = GameState.newGame(size);
-        System.out.println(boardSize + aiLevel);
-        switch (aiLevel) {
-            case "beginner":
-                aiAgent = new BeginnerBot();
-                break;
-            case "ddk":
-                aiAgent = new AlphaBetaBot(3); // Example depth and evaluator
-                break;
-            case "sdk":
-                aiAgent = new MCTSBot(500, 0.15);
-                break;
+
+        System.out.println("Board Size: " + boardSize + ", AI Level: " + aiLevel);
+
+        // Only allow GPT2Bot if board size is 19
+        if (size == 19) {
+            switch (aiLevel) {
+                case "beginner":
+                    aiAgent = new BeginnerBot();
+                    break;
+                case "ddk":
+                case "sdk":
+                case "low-dan":
+                case "high-dan":
+                    aiAgent = new GPT2Bot(aiLevel); // allow GPT2 for trained board size
+                    break;
+                default:
+                    aiAgent = new BeginnerBot(); // fallback
+                    break;
+            }
+        } else {
+            // GPT2 not trained for 9x9 or 13x13 — use BeginnerBot for all levels
+            aiAgent = new BeginnerBot();
+            System.out.println("GPT2Bot not supported on board sizes other than 19. Using BeginnerBot instead.");
         }
-        return ResponseEntity.ok(Map.of("status", "success", "message", "Game started with board size: " + boardSize));
+
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Game started with board size: " + boardSize + ", AI level: " + aiLevel));
     }
 
-    @PostMapping("/playgo/usermove")
+    @PostMapping("/usermove")
     public ResponseEntity<?> handleUserMove(@RequestBody Map<String, Object> jsonObject) {
         try {
             int gridCol = (int) jsonObject.get("gridCol");
@@ -98,7 +113,7 @@ public class GoGameController {
         }
     }
     
-    @PostMapping("/playgo/aimove")
+    @PostMapping("/aimove")
     public ResponseEntity<?> handleAIMove() {
         try {
             Move aiMove = aiAgent.selectMove(boardXY);
@@ -130,10 +145,10 @@ public class GoGameController {
         }
     }
 
-    @PostMapping("/playgo/scoring")
+    @PostMapping("/scoring")
     public ResponseEntity<?> calculateScore() {
         try {
-                // Evaluate the territory
+            // Evaluate the territory
             Territory territory = Score.evaluateTerritory(boardXY.getBoard());
 
             // Log the territory results for debugging
@@ -144,7 +159,7 @@ public class GoGameController {
             System.out.println("Dame Points: " + territory.getNumDame());
 
             GameResult gameResult = Score.computeGameResult(boardXY.getBoard());
-                // Log the game result for debugging
+            // Log the game result for debugging
             System.out.println("Black Points: " + gameResult.getBlackPoints());
             System.out.println("White Points: " + gameResult.getWhitePoints());
             System.out.println("Komi: " + gameResult.getKomi());
@@ -183,6 +198,164 @@ public class GoGameController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("status", "error", "message", "Failed to calculate score"));
+        }
+    }
+
+    @PostMapping("/sgf/board")
+    public ResponseEntity<?> getBoardStateFromSgf(@RequestBody Map<String, Object> payload) {
+        try {
+            String sgf = (String) payload.get("sgf");
+            int step = (int) payload.get("step");
+
+            String cleanedSgf = sgf.replace("<|startoftext|>", "").replace("<|endoftext|>", "").trim();
+            List<Move> moves = new ArrayList<>();
+            for (int i = 0; i < cleanedSgf.length() - 2; i += 3) {
+                int col = cleanedSgf.charAt(i + 1) - 'a';
+                int row = cleanedSgf.charAt(i + 2) - 'a';
+                Point p = new Point(col, row);
+                moves.add(Move.play(p));
+            }
+
+            GameState current = GameState.newGame(19);
+            Point lastMovePoint = null;
+
+            for (int i = 0; i < Math.min(step, moves.size()); i++) {
+                Move m = moves.get(i);
+                if (current.isValidMove(m)) {
+                    current = current.applyMove(m);
+                    lastMovePoint = m.getPoint(); // Track the last move
+                }
+            }
+            this.boardXY = current;
+            this.size   = 19;
+
+            List<Map<String, Object>> boardState = new ArrayList<>();
+            for (Map.Entry<Point, Chain> entry : current.getBoard().getGrid().entrySet()) {
+                if (entry.getValue() != null) {
+                    Point p = entry.getKey();
+                    String color = entry.getValue().getColor().equals(Player.BLACK.getColor()) ? "black" : "white";
+                    boardState.add(Map.of("col", p.getCol(), "row", p.getRow(), "color", color));
+                }
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("boardState", boardState);
+            response.put("totalMoves", moves.size());
+            if (lastMovePoint != null) {
+                response.put("lastMove", Map.of("col", lastMovePoint.getCol(), "row", lastMovePoint.getRow()));
+            }
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "SGF parsing failed"));
+        }
+    }
+
+
+    @PostMapping("/loadsgf")
+    public ResponseEntity<?> loadSGF(@RequestBody Map<String, String> jsonObject) {
+        try {
+            String sgf = jsonObject.get("sgf");
+            boardXY = GameState.newGame(19); // default size for SGF
+            SgfParser.applySgf(boardXY, sgf);
+
+            List<Map<String, Object>> stones = new ArrayList<>();
+            for (Map.Entry<Point, Chain> entry : boardXY.getBoard().getGrid().entrySet()) {
+                Point p = entry.getKey();
+                Chain chain = entry.getValue();
+                if (chain != null) {
+                    String color = chain.getColor().equals(java.awt.Color.BLACK) ? "B" : "W";
+                    stones.add(Map.of("col", p.getCol(), "row", p.getRow(), "color", color));
+                }
+            }
+
+            return ResponseEntity.ok(Map.of("stones", stones, "message", "SGF loaded successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("status", "error", "message", "Failed to parse SGF"));
+        }
+    }
+    
+    @PostMapping("/manualinit")
+    public ResponseEntity<?> initializeManualBoard(@RequestBody Map<String, Object> json) {
+        try {
+            String sgf = (String) json.get("sgf");
+            int baseStep = (int) json.get("step");
+
+            // parse SGF & apply first baseStep moves
+            String cleaned = sgf.replace("<|startoftext|>", "").replace("<|endoftext|>", "").trim();
+            List<Move> moves = new ArrayList<>();
+            for (int i = 0; i < cleaned.length() - 2; i += 3) {
+                int col = cleaned.charAt(i+1) - 'a';
+                int row = cleaned.charAt(i+2) - 'a';
+                moves.add(Move.play(new Point(col, row)));
+            }
+
+            GameState state = GameState.newGame(19);
+            for (int i = 0; i < Math.min(baseStep, moves.size()); i++) {
+                Move m = moves.get(i);
+                if (state.isValidMove(m)) {
+                    state = state.applyMove(m);
+                }
+            }
+            // persist for future manual moves:
+            this.boardXY = state;
+
+            // build response boardState
+            List<Map<String,Object>> boardList = state.getBoardAsList();
+
+            return ResponseEntity.ok(Map.of(
+                "boardState", boardList
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to initialize manual board"));
+        }
+    }
+
+    @PostMapping("/manualmove")
+    public ResponseEntity<?> handleManualMove(@RequestBody Map<String, Object> json) {
+        try {
+            int col = (int) json.get("col");
+            int row = (int) json.get("row");
+            String color = (String) json.get("color");
+
+            Player player = color.equalsIgnoreCase("black") ? Player.BLACK : Player.WHITE;
+            Point point = new Point(col, row);
+
+            if (boardXY == null) {
+                boardXY = GameState.newGame(19); // Should not happen if frontend initialized properly
+            }
+
+            if (!boardXY.isValidManualMove(point, player)) {
+                return ResponseEntity.ok(Map.of(
+                    "validMove", false,
+                    "message", "Invalid manual move. Point may already be occupied or illegal."
+                ));
+            }
+
+            boardXY = boardXY.applyManualMove(point, player);
+            Set<Point> capturedPoints = boardXY.getCapturedPoints();
+
+            List<Map<String, Integer>> capturedList = new ArrayList<>();
+            for (Point p : capturedPoints) {
+                capturedList.add(Map.of("col", p.getCol(), "row", p.getRow()));
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "validMove", true,
+                "capturedPoints", capturedList,
+                "boardState", boardXY.getBoardAsList(),
+                "lastMove", Map.of("col", col, "row", row)
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "status", "error",
+                "message", "Failed to process manual move."
+            ));
         }
     }
 }

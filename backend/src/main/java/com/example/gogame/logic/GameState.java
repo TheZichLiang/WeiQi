@@ -30,6 +30,14 @@ public class GameState {
         }
     }
 
+    public GameState applyManualMove(Point point, Player player) {
+        Board nextBoard = this.board.deepCopy();
+        Set<Point> captured = nextBoard.placeStone(player, point);
+        Move move = Move.play(point);
+        return new GameState(nextBoard, this.nextPlayer, this, move, captured);
+    }
+    
+
     public Set<Point> getCapturedPoints() {
         return this.capturedPoints;
     }
@@ -92,6 +100,18 @@ public class GameState {
                 !this.doesMoveViolateKo(this.nextPlayer, move);
     }
 
+    public boolean isValidManualMove(Point point, Player player) {
+        if (this.isOver()) {
+            return false;
+        }
+        if (this.board.getChain(point) != null) {
+            return false;
+        }
+        Move move = Move.play(point);
+        return !this.isMoveSelfCapture(player, move) &&
+            !this.doesMoveViolateKo(player, move);
+    }
+
     public List<Move> legalMoves() {
         List<Move> moves = new ArrayList<>();
         for (int col = 0; col < this.board.getDim(); col++) {
@@ -123,9 +143,30 @@ public class GameState {
     public Board getBoard() {
         return this.board;
     }
+
+    public List<Map<String, Object>> getBoardAsList() {
+        List<Map<String, Object>> boardList = new ArrayList<>();
+        for (Map.Entry<Point, Chain> entry : this.board.getGrid().entrySet()) {
+            Chain chain = entry.getValue();
+            if (chain != null) {
+                Point p = entry.getKey();
+                String color = chain.getColor().equals(Player.BLACK.getColor()) ? "black" : "white";
+                boardList.add(Map.of(
+                    "col", p.getCol(),
+                    "row", p.getRow(),
+                    "color", color
+                ));
+            }
+        }
+        return boardList;
+    }
+
     
     public Move getLastMove() {
         return lastMove;
+    }
+    public GameState getPreviousState() {
+        return this.previousState;
     }
 
     public Player getNextPlayer() {
