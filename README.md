@@ -49,5 +49,5 @@ WeiQi supports two AI agents, enabling scalable difficulty from beginner to adva
 ```plaintext
 Frontend (React)    <--->    Backend (Spring Boot)    <--->    (Planned) Database
     |                                |                               |
-HTML/CSS/JS                Game Logic, AI Agents          PostgreSQL for multiplayer,
+HTML/CSS/JS                Game Logic, AI Agents          MySQL for multiplayer,
                              GPT2Bot, SGF parsing           login, and match records
