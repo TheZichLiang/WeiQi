@@ -10,6 +10,7 @@ public class Chain implements Cloneable{
     private Set<Point> stones;
     private Set<Point> liberties;
 
+    public Chain(){}
     public Chain(Color color, Set<Point> stones, Set<Point> liberties) {
         this.color = color;
         this.stones = new HashSet<>(stones);

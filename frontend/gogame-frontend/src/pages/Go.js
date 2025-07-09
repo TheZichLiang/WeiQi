@@ -30,6 +30,7 @@ function Go() {
   const [showScores, setShowScores] = useState(false);
   const [showTurnNumbers, setShowTurnNumbers] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const aiThinkingInterval = useRef(null);
   
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const baseUrl = process.env.REACT_APP_BASE_URL;
@@ -163,7 +164,7 @@ function Go() {
 
   const handleUserMove = async (event) => {
     if (gameOver) {
-      setAiMessage("Game is over.")
+      setAiMessage("Game is over.");
       return;
     }else if (currentStone=== 'white'){
       setAiMessage("Moves are not allowed before AI moves.");
@@ -183,7 +184,18 @@ function Go() {
           const data = await response.json();
           if (data.validMove) {
             const newBoardState = [...boardState];
-            setAiMessage(`You played at (${nearestIntersection.gridCol}, ${nearestIntersection.gridRow})`);
+
+            const baseMessage = `You played at (${nearestIntersection.gridCol}, ${nearestIntersection.gridRow}). `;
+            setAiMessage(baseMessage + 'AI thinking');
+            let dots = 0;
+            const maxDots = 6;
+
+            aiThinkingInterval.current = setInterval(() => {
+              dots = (dots + 1) % (maxDots + 1);
+              const loadingDots = '.'.repeat(dots);
+              setAiMessage(baseMessage + `AI thinking${loadingDots}`);
+            }, 500);
+
             const nearestIndex = intersections.findIndex(intersection =>
               intersection.gridCol === nearestIntersection.gridCol && intersection.gridRow === nearestIntersection.gridRow
             );
@@ -237,6 +249,8 @@ function Go() {
             setAiMessage("AI passed its turn.");
             setCurrentStone('black');
           }else {
+            clearInterval(aiThinkingInterval.current);
+            aiThinkingInterval.current = null;
             setAiMessage(`AI played at (${data.aiMove.col}, ${data.aiMove.row})`);
             const aiMoveIndex = intersections.findIndex(intersection =>
               intersection.gridCol === data.aiMove.col && intersection.gridRow === data.aiMove.row

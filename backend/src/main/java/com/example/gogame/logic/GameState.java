@@ -2,13 +2,18 @@ package com.example.gogame.logic;
 
 import java.util.*;
 import com.example.gogame.scoring.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GameState {
     private Board board;
     private Player nextPlayer;
     private GameState previousState;
     private Move lastMove;
     private Set<Point> capturedPoints;
+
+    public GameState() {}
 
     public GameState(Board board, Player nextPlayer, GameState previousState, Move lastMove, Set<Point> capturedPoints) {
         this.board = board;
@@ -177,7 +182,8 @@ public class GameState {
         return new Situation(this.nextPlayer, this.board);
     }
 
-    private static class Situation {
+    @JsonIgnoreType
+    public static class Situation {
         private Player player;
         private String[][] boardState;
 

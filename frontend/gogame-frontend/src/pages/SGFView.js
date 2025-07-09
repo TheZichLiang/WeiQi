@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import VertexDetector from "../components/VertexDetector";
+import ControlPanel from "../components/ControlPanel";
 import styles from "./SGFView.module.css";
+import { useLoaderData } from 'react-router-dom';
 
 function cleanSgf(raw) {
   return raw
@@ -236,40 +238,19 @@ function SgfViewer() {
             );
           })}
         </div>
-        <div className={styles.controls}>
-          <div className={styles['controls-left']}>
-            <button className={styles.rectButton} disabled={isManualMode} onClick={handleClear}>CLEAR</button>
-          </div>
-          <div className={styles['controls-center']}>
-            <button
-              className={styles.iconButton}
-              disabled={step <= minStep}
-              onClick={()=>setStep(s=>Math.max(s-10,minStep))}
-              title="Back 10">⏮️</button>
-            <button
-              className={styles.iconButton}
-              disabled={step <= minStep}
-              onClick={()=>setStep(s=>Math.max(s-1,minStep))}
-              title="Back 1">◀️</button>
-            <span className={styles.moveCounter}>
-              {isManualMode ? `Manual: ${step}` : `Move: ${step} / ${totalMoves}`}
-            </span>
-            <button
-              className={styles.iconButton}
-              disabled={step >= maxStep}
-              onClick={()=>setStep(s=>Math.min(s+1,maxStep))}
-              title="Forward 1">▶️</button>
-            <button
-              className={styles.iconButton}
-              disabled={step >= maxStep}
-              onClick={()=>setStep(s=>Math.min(s+10,maxStep))}
-              title="Forward 10">⏭️</button>
-          </div>
-          <div className={styles['controls-right']}>
-            <button className={styles.rectButton} disabled={isManualMode} onClick={()=>setStep(maxStep)}>FULL</button>
-            <button className={styles.rectButton} onClick={toggleManual}>{isManualMode?'Auto':'Manual'}</button>
-          </div>
-        </div>
+        <ControlPanel
+          step={step}
+          maxStep={maxStep}
+          isManualMode={isManualMode}
+          onClear={handleClear}
+          onBack={() => setStep(s => Math.max(minStep, s - 1))}
+          onBack10={() => setStep(s => Math.max(minStep, s - 10))}
+          onForward={() => setStep(s => Math.min(maxStep, s + 1))}
+          onForward10={() => setStep(s => Math.min(maxStep, s + 10))}
+          onFull={() => setStep(maxStep)}
+          onToggleManual={toggleManual}
+          toggleType="manual-auto"
+        />
       </div>
     </div>
   );

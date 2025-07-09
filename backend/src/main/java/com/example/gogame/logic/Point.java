@@ -3,9 +3,10 @@ package com.example.gogame.logic;
 import java.util.*;
 
 public class Point implements Cloneable {
-    private final int col;
-    private final int row;
+    private int col;
+    private int row;
 
+    public Point(){}
     public Point(int col, int row) {
         this.col = col;
         this.row = row;

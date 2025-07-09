@@ -12,6 +12,7 @@ import Rules from './pages/Rules'; // Import the Rules component
 import Board from './pages/Board'; // Import the Board component
 import Settings from './pages/Settings'; // Import the Settings component
 import SGFViewer from './pages/SGFView';
+import Multiplayer from './pages/Multiplayer';
 import { GameStateProvider } from './components/GameStateContext';
 import PathLogger from './pathlogger'; 
 import NotFound from './notfound'; 
@@ -25,6 +26,7 @@ root.render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/play" element={<Go />} />
+        <Route path="/multiplayer" element={<Multiplayer/>} />
         <Route path="/sgf" element={<SGFViewer />} />
         <Route path="/gorules" element={<Rules />} />
         <Route path="/chooseboard" element={<Board />} />

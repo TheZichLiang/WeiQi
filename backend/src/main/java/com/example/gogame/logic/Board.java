@@ -1,12 +1,23 @@
 package com.example.gogame.logic;
 
 import java.util.*;
+
+import com.example.gogame.multiplayer.PointKeyDeserializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.awt.Color;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Board {
     private int numRows;
     private int numCols;
+    
+    @JsonDeserialize(keyUsing = PointKeyDeserializer.class)
     private Map<Point, Chain> grid;
+
+    public Board(){}
 
     public Board(int numCols, int numRows) {
         this.numCols = numCols;
@@ -92,7 +103,7 @@ public class Board {
         }
     }
 
-
+    @JsonIgnore
     public String[][] getBoardState() {
         String[][] boardArray = new String[numRows][numCols];
         for (int col = 0; col < numCols; col++) {
@@ -121,6 +132,7 @@ public class Board {
         return this.grid;
     }
 
+    @JsonIgnore
     public int getDim() {
         return numCols;
     }

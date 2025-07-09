@@ -6,6 +6,7 @@ public class Move {
     private boolean isPass;
     private boolean isResign;
 
+    public Move(){}
     public Move(Point point, boolean isPass, boolean isResign) {
         assert (point != null) ^ isPass ^ isResign;
         this.point = point;

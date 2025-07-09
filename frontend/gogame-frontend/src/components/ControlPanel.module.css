@@ -1,0 +1,63 @@
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.controls-left,
+.controls-center,
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rectButton {
+  height: 40px;
+  padding: 0 15px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.rectButton:hover:not(:disabled) {
+  background-color: #666;
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.iconButton:hover {
+  transform: scale(1.2);
+}
+
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.moveCounter {
+  font-size: 18px;
+  margin-top: 10px;
+  color: #333;
+  font-weight: 500;
+}
