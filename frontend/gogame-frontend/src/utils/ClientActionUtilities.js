@@ -37,29 +37,6 @@ class ClientActionUtilities {
           return null;
       }
     }
-  
-   
-    handleWindowResize(updateScalesAndRect) {
-        window.addEventListener('resize', updateScalesAndRect);
-        return () => window.removeEventListener('resize', updateScalesAndRect);
-    }
-
-    updateScalesAndRect(boardRef, boardSize, setScaleWidth, setScaleHeight, setBoardRect, setCellSize) {
-        if (boardRef.current) {
-        const naturalWidth = boardRef.current.naturalWidth;
-        const naturalHeight = boardRef.current.naturalHeight;
-        const displayedWidth = boardRef.current.clientWidth;
-        const displayedHeight = boardRef.current.clientHeight;
-        setScaleWidth(displayedWidth / naturalWidth);
-        setScaleHeight(displayedHeight / naturalHeight);
-        setBoardRect(boardRef.current.getBoundingClientRect());
-        setCellSize({
-            width: displayedWidth / boardSize,
-            height: displayedHeight / boardSize
-        });
-        console.log("Board Rect set:", boardRef.current.getBoundingClientRect());
-        }
-    }
 }
 
 export default ClientActionUtilities;

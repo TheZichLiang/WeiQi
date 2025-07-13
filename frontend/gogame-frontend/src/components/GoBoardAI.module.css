@@ -1,0 +1,65 @@
+.boardContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.boardWrapper {
+  position: relative;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+}
+
+.boardimg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  cursor: pointer;
+}
+
+.stoneContainer {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.stone {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.stoneOutline {
+  border: 3px solid blue;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.turnNumber {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+  font-weight: bold;
+}
+
+.blackTerritory,
+.whiteTerritory {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.blackTerritory {
+  background-color: black;
+}
+
+.whiteTerritory {
+  background-color: silver;
+}

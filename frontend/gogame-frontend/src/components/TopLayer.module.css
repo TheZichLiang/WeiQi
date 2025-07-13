@@ -1,0 +1,44 @@
+.topLeft, .topMiddle, .topRight {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 5px solid black;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.topLeft {
+  grid-column: 1;
+  grid-row: 1;
+}
+.topMiddle {
+  grid-column: 2;
+  grid-row: 1;
+}
+.topRight {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.columnHeader {
+  font-family: 'freight-big-pro', sans-serif;
+  font-weight: bold;
+  font-size: 6vh;
+  text-align: center;
+  color: black;
+}
+
+.title {
+  font-family: 'freight-big-pro', sans-serif;
+  font-weight: bold;
+  font-size: 8vh;
+  letter-spacing: -6.5px;
+  text-align: center;
+  color: black;
+}
+
+.stoneImg {
+  width: 3vw;
+  margin-left: 10px;
+}

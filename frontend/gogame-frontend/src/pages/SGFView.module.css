@@ -9,12 +9,6 @@
   gap: 40px;
 }
 
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -33,74 +27,4 @@
 
 .dropdown {
   font-size: 16px;
-}
-
-
-.boardWrapper {
-  position: relative;
-  max-width: 90vmin;
-  max-height: 90vmin;
-  width: 90vmin;
-  height: 90vmin;
-}
-
-.boardimg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.stone {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.marker {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -100%);
-  width: 0;
-  height: 0;
-  z-index: 3;
-  pointer-events: none;
-}
-
-.marker.black {
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 12px solid yellow;
-}
-
-.marker.white {
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 12px solid red;
-}
-
-/* Manual mode styling */
-.stoneContainer {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-}
-
-.stoneOutline {
-  border: 3px solid blue;
-  border-radius: 50%;
-  box-sizing: border-box;
-  z-index: 3;
-}
-
-.turnNumber {
-  position: absolute;
-  color: red;
-  font-weight: bold;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
 }

@@ -71,11 +71,7 @@ public class MultiController {
             ));
         }
 
-        Set<Point> captured = nextState.getCapturedPoints();
-        List<Map<String, Integer>> capturedList = new ArrayList<>();
-        for (Point p : captured) {
-            capturedList.add(Map.of("col", p.getCol(), "row", p.getRow()));
-        }
+        List<Map<String, Integer>> capturedList = GameService.convertCapturedPoints(nextState.getCapturedPoints());
 
         return ResponseEntity.ok(Map.of(
             "validMove", true,
@@ -116,61 +112,45 @@ public class MultiController {
         ));
     }
 
-    @PostMapping("/manualinit")
+   @PostMapping("/manualinit")
     public ResponseEntity<?> manualInit(@RequestBody Map<String, Object> body) {
         String playerId = (String) body.get("playerId");
         int step = ((Number) body.get("step")).intValue();
 
         MultiplayerSession session = SessionManager.getSession(playerId);
-        if (session == null) return ResponseEntity.badRequest().body(Map.of("error", "No session"));
+        if (session == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No session"));
+        }
 
         List<Move> history = session.getMoveHistory();
         GameState manualState = GameState.newGame(session.getBoardSize());
-
-        for (int i = 0; i < step && i < history.size(); i++) {
-            Move move = history.get(i);
-            if (move.isPlay()) {
-                Player color = session.getColorForPlayerAtIndex(i);
-                if (manualState.isValidManualMove(move.getPoint(), color)) {
-                    manualState = manualState.applyManualMove(move.getPoint(), color);
-                }
-            }
-        }
-
-        List<Map<String, Object>> boardList = manualState.getBoardAsList();
-        return ResponseEntity.ok(Map.of("board", boardList));
+        manualState = GameService.applyManualHistory(manualState, history, step, session);
+        return ResponseEntity.ok(Map.of("board", manualState.getBoardAsList()));
     }
 
     @PostMapping("/manualmove")
     public ResponseEntity<?> manualMove(@RequestBody Map<String, Object> body) {
+        String playerId = (String) body.get("playerId");
         int step = ((Number) body.get("step")).intValue();
         int col  = ((Number) body.get("col")).intValue();
         int row  = ((Number) body.get("row")).intValue();
         String color = (String) body.get("color");
 
-        Player player = color.equals("black") ? Player.BLACK : Player.WHITE;
-        Point point = new Point(col, row);
-
-        MultiplayerSession dummySession = new MultiplayerSession(19);  // Size will be replaced
-        GameState manualState = GameState.newGame(dummySession.getBoardSize());
-
-        List<Move> history = dummySession.getMoveHistory();
-        for (int i = 0; i < step && i < history.size(); i++) {
-            Move move = history.get(i);
-            Player p = dummySession.getColorForPlayerAtIndex(i);
-            if (manualState.isValidManualMove(move.getPoint(), p)) {
-                manualState = manualState.applyManualMove(move.getPoint(), p);
-            }
+        MultiplayerSession session = SessionManager.getSession(playerId);
+        if (session == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No session"));
         }
 
-        if (!manualState.isValidManualMove(point, player)) {
-            return ResponseEntity.ok(Map.of("validMove", false));
+        List<Move> history = session.getMoveHistory();
+        GameState state = GameService.applyManualHistory(GameState.newGame(session.getBoardSize()), history, step, session);
+
+        Map<String, Object> result = GameService.processManualMove(state, col, row, color, true);
+
+        if ((boolean) result.get("validMove")) {
+            session.setGameState((GameState) result.get("updatedBoard"));
         }
 
-        manualState = manualState.applyManualMove(point, player);
-        return ResponseEntity.ok(Map.of(
-            "validMove", true,
-            "board", manualState.getBoardAsList()
-        ));
+        result.remove("updatedBoard");
+        return ResponseEntity.ok(result);
     }
 }

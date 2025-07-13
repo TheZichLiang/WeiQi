@@ -1,0 +1,148 @@
+.leftPanel, .middlePanel, .rightPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  border: 5px solid black;
+  padding: 10px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* STATS TABLES */
+.statsTableBlack th, .statsTableBlack td {
+  border: 5px solid white;
+  padding: 20px;
+  text-align: center;
+  font-size: 18px;
+  color: white;
+  background-color: black;
+}
+
+.statsTableWhite th, .statsTableWhite td {
+  border: 5px solid black;
+  padding: 20px;
+  text-align: center;
+  font-size: 18px;
+  color: black;
+  background-color: white;
+}
+
+/* BUTTONS */
+.buttonsContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  gap: 10px;
+  align-items: center;
+}
+
+.panelButton {
+  margin: 10px;
+  height: 50px;
+  width: 150px;
+  font-size: 20px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: bold;
+  background-color: #FCFCFD;
+  color: #36395A;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: rgba(45,35,66,0.4) 0 2px 4px,
+              rgba(45,35,66,0.3) 0 7px 13px -3px,
+              #D6D6E7 0 -3px 0 inset;
+  transition: all 0.15s;
+}
+
+.panelButton:hover {
+  background: red;
+  transform: translateY(-2px);
+  box-shadow: rgba(45,35,66,0.4) 0 4px 8px,
+              rgba(45,35,66,0.3) 0 7px 13px -3px,
+              #D6D6E7 0 -3px 0 inset;
+}
+
+.scoreButton {
+  margin-top: 30px;
+  height: 80px;
+  width: 180px;
+  font-size: 17px;
+  font-weight: bold;
+  font-style: italic;
+  padding: 0.6em 2em;
+  border: none;
+  border-radius: 40%;
+  cursor: pointer;
+  position: relative;
+  color: gold;
+  background: navy;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.scoreButton::before {
+  content: "";
+  position: absolute;
+  top: -2px; left: -2px;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+  background-size: 400%;
+  filter: blur(10px);
+  z-index: -1;
+  animation: glowing-button-85 20s linear infinite;
+  border-radius: 40%;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.scoreButton::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0; top: 0;
+  background: navy;
+  border-radius: 40%;
+  z-index: -1;
+}
+
+.scoreButton:hover::before {
+  background: rgb(170, 212, 229);
+  filter: blur(30px);
+  border: 10px solid navy;
+}
+
+.scoreButton:hover {
+  color: navy;
+}
+
+.scoreButton:hover::after {
+  background: rgb(218, 219, 221);
+}
+
+@keyframes glowing {
+  0% { background-position: 0 0; }
+  50% { background-position: 400% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* AI MESSAGE BOX */
+.aiMessageBox {
+  margin-top: 20px;
+  border: 5px solid black;
+  background-color: #f9f9f9;
+  width: 50%;
+  height: 25%;
+  text-align: center;
+}
+
+.messageTitle {
+  font-size: 25px;
+  margin-bottom: 10px;
+}
+
+.message {
+  font-size: 15px;
+  font-weight: bold;
+}

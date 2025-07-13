@@ -1,7 +1,6 @@
 package com.example.gogame;
 
 import java.util.*;
-
 import com.example.gogame.logic.*;
 import com.example.gogame.scoring.*;
 import com.example.gogame.ai.*;
@@ -90,12 +89,7 @@ public class GoGameController {
                 if (playerMove.isPass()) {
                     return ResponseEntity.ok(Map.of("gameOver", false, "message", "You passed."));
                 }
-                Set<Point> capturedPoints = boardXY.getCapturedPoints();
-                List<Map<String, Integer>> capturedPointsList = new ArrayList<>();
-                for (Point p : capturedPoints) {
-                    capturedPointsList.add(Map.of("col", p.getCol(), "row", p.getRow()));
-                }
-
+                List<Map<String, Integer>> capturedPointsList = GameService.convertCapturedPoints(boardXY.getCapturedPoints());
                 return ResponseEntity.ok(Map.of(
                     "validMove", true,
                     "capturedPoints", capturedPointsList,
@@ -128,11 +122,7 @@ public class GoGameController {
             if (aiMove.isPass()) {
                 return ResponseEntity.ok(Map.of("gameOver", false, "message", "AI passed."));
             }
-            Set<Point> aiCapturedPoints = boardXY.getCapturedPoints();
-            List<Map<String, Integer>> aiCapturedPointsList = new ArrayList<>();
-            for (Point p : aiCapturedPoints) {
-                aiCapturedPointsList.add(Map.of("col", p.getCol(), "row", p.getRow()));
-            }
+            List<Map<String, Integer>> aiCapturedPointsList = GameService.convertCapturedPoints(boardXY.getCapturedPoints());
             return ResponseEntity.ok(Map.of(
                 "validMove", true,
                 "aiMove", Map.of("col", aiMove.getPoint().getCol(), "row", aiMove.getPoint().getRow()),
@@ -294,12 +284,7 @@ public class GoGameController {
             }
 
             GameState state = GameState.newGame(19);
-            for (int i = 0; i < Math.min(baseStep, moves.size()); i++) {
-                Move m = moves.get(i);
-                if (state.isValidMove(m)) {
-                    state = state.applyMove(m);
-                }
-            }
+            state = GameService.applyManualHistory(state, moves, baseStep, null);
             // persist for future manual moves:
             this.boardXY = state;
 
@@ -321,35 +306,14 @@ public class GoGameController {
             int col = (int) json.get("col");
             int row = (int) json.get("row");
             String color = (String) json.get("color");
+            Map<String, Object> result = GameService.processManualMove(boardXY, col, row, color, true);
 
-            Player player = color.equalsIgnoreCase("black") ? Player.BLACK : Player.WHITE;
-            Point point = new Point(col, row);
-
-            if (boardXY == null) {
-                boardXY = GameState.newGame(19); // Should not happen if frontend initialized properly
+            if ((boolean) result.get("validMove")) {
+                boardXY = (GameState) result.get("updatedBoard");  // reassign board state
             }
 
-            if (!boardXY.isValidManualMove(point, player)) {
-                return ResponseEntity.ok(Map.of(
-                    "validMove", false,
-                    "message", "Invalid manual move. Point may already be occupied or illegal."
-                ));
-            }
-
-            boardXY = boardXY.applyManualMove(point, player);
-            Set<Point> capturedPoints = boardXY.getCapturedPoints();
-
-            List<Map<String, Integer>> capturedList = new ArrayList<>();
-            for (Point p : capturedPoints) {
-                capturedList.add(Map.of("col", p.getCol(), "row", p.getRow()));
-            }
-
-            return ResponseEntity.ok(Map.of(
-                "validMove", true,
-                "capturedPoints", capturedList,
-                "boardState", boardXY.getBoardAsList(),
-                "lastMove", Map.of("col", col, "row", row)
-            ));
+            result.remove("updatedBoard");  // don't send internal object to frontend
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of(
