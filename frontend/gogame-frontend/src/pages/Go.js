@@ -1,310 +1,355 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useGameState } from "../components/GameStateContext";
 import VertexDetector from "../utils/VertexDetector";
-import TopLayer from "../components/TopLayer";
 import BottomLayer from "../components/BottomLayer";
-import GoBoardAI from "../components/GoBoardAI"; 
-import Gostyles from './Go.module.css'; // Assuming you have a Go.module.css for GoGostyles
-import {userMove, postSpecialMove, fetchScoreData} from '../utils/APIHelpers';
-import {gridToClientPixels, selectBoardImage, handleBoardClick, extractBoardMetrics} from '../utils/BoardUtils';
+import GoBoardAI from "../components/GoBoardAI";
+import Gostyles from './Go.module.css';
+import ControlPanel from '../components/ControlPanel';
+import { userMove, postSpecialMove, fetchScoreData } from '../utils/APIHelpers';
+import { gridToClientPixels, selectBoardImage, handleBoardClick, extractBoardMetrics } from '../utils/BoardUtils';
+import {
+  pushToHistory,
+  stepBack,
+  stepBack10,
+  stepForward,
+  stepForward10
+} from '../utils/ControlPanelFunc';
+
 
 function Go() {
-  const { boardSize, aiLevel} = useGameState();
+  const { boardSize, aiLevel } = useGameState();
   const boardRef = useRef(null);
+
+
+  // rendering & image metrics
   const [scaleWidth, setScaleWidth] = useState(1);
   const [scaleHeight, setScaleHeight] = useState(1);
-  const [gameStarted, setGameStarted] = useState(false);
   const [boardImage, setBoardImage] = useState('');
   const [intersections, setIntersections] = useState([]);
-  const [boardState, setBoardState] = useState([]);
-  const [currentStone, setCurrentStone] = useState('black');
   const [boardRect, setBoardRect] = useState({});
   const [cellSize, setCellSize] = useState({ width: 0, height: 0 });
-  const [turnCounter, setTurnCounter] = useState(1);
-  const [latestMoveIdx, setLatestMoveIdx] = useState(null); 
-  const [capturedBlack, setCapturedBlack] = useState(0);
-  const [capturedWhite, setCapturedWhite] = useState(0);
+
+
+  // game state history
+  const [history, setHistory] = useState([]);
+  const [step, setStep] = useState(0);
+
+
+  // manual "research" mode state
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [lastManualStep, setLastManualStep] = useState(0);
+  const [manualBoard, setManualBoard] = useState([]);
+  const [manualStone, setManualStone] = useState('black');
+  const [manualTurn, setManualTurn] = useState(0);
+
+
+  // metadata
+  const [latestMoveIdx, setLatestMoveIdx] = useState(null);
   const [latestBlackMove, setLatestBlackMove] = useState(null);
   const [latestWhiteMove, setLatestWhiteMove] = useState(null);
   const [blackTerritory, setBlackTerritory] = useState([]);
   const [whiteTerritory, setWhiteTerritory] = useState([]);
   const [blackScore, setBlackScore] = useState(0);
   const [whiteScore, setWhiteScore] = useState(0);
+  //const [currTurn, setCurrTurn] = useState(0);
+
+  // UI & flow
+  const [gameStarted, setGameStarted] = useState(false);
   const [aiMessage, setAiMessage] = useState('');
   const [showScores, setShowScores] = useState(false);
   const [showTurnNumbers, setShowTurnNumbers] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [isAITurn, setIsAITurn] = useState(false);
   const aiThinkingInterval = useRef(null);
+
+
+  // helpers for history-based state
+  const safeStep = Math.min(step, history.length - 1);
+  const getInitState = () => ({
+    boardState: Array(intersections.length).fill(null),
+    currentStone: 'black',
+    turn: 0,
+    capturedBlack: 0,
+    capturedWhite: 0
+  });
   
+  const currentSnapshot = history[safeStep] || getInitState();
+  const {
+    boardState: currBoard,
+    currentStone: currStone,
+    turn: currTurn,
+    capturedBlack: currCapB,
+    capturedWhite: currCapW
+  } = currentSnapshot;
+
+
+  // when entering manual mode or changing step, seed manualBoard from snapshot
+  /*useEffect(() => {
+    if (isManualMode) {
+      setManualBoard(currBoard);
+      setManualStone(currStone);
+      setManualTurn(currTurn);
+    }
+  }, [isManualMode, safeStep]);*/
+
+
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const baseUrl = process.env.REACT_APP_BASE_URL;
+ 
 
+  // start a new game
   useEffect(() => {
-    const startGame = async () => {
+    async function startGame() {
       try {
-        const response = await fetch(`${apiBaseUrl}/startgame`, {
+        const resp = await fetch(`${apiBaseUrl}/startgame`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ boardSize: boardSize, aiLevel: aiLevel })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ boardSize, aiLevel })
         });
-
-        console.log('Start Game Response:', response);
-
-        if (response.ok) {
-          const data = await response.json();
-          setGameStarted(true);
-          setBoardImage(selectBoardImage(baseUrl, boardSize));
-        } else {
-          throw new Error('Failed to start game');
-        }
-      } catch (error) {
-        setAiMessage('Failed to start game. Please contact admin to activate server.');
+        if (!resp.ok) throw new Error();
+        setGameStarted(true);
+        setBoardImage(selectBoardImage(baseUrl, boardSize));
+      } catch {
+        setAiMessage('Failed to start game. Please contact admin.');
       }
-    };
-
+    }
     startGame();
   }, [boardSize, aiLevel, apiBaseUrl, baseUrl]);
 
-  
-  const handleImageLoad = () => {
-    const metrics = extractBoardMetrics(boardRef, boardSize);
-    if (!metrics) return;
 
-    setScaleWidth(metrics.scaleW);
-    setScaleHeight(metrics.scaleH);
-    setCellSize(metrics.cell);
-    setBoardRect(metrics.rect);
+  // handle board image load
+  const handleImageLoad = () => {
+    const m = extractBoardMetrics(boardRef, boardSize);
+    if (!m) return;
+    setScaleWidth(m.scaleW);
+    setScaleHeight(m.scaleH);
+    setCellSize(m.cell);
+    setBoardRect(m.rect);
   };
 
+
+  // detect intersections & initialize history
   useEffect(() => {
     if (!boardImage || !gameStarted) return;
-    const processImage = async () => {
-      const vtxDetector = new VertexDetector(boardImage);
-      const pts = await vtxDetector.processImage(parseInt(boardSize));
+    async function detect() {
+      const detector = new VertexDetector(boardImage);
+      const pts = await detector.processImage(parseInt(boardSize, 10));
       setIntersections(pts);
-      setBoardState(new Array(pts.length).fill(null));
-    };
-    processImage();
+    }
+    detect();
   }, [boardImage, gameStarted, boardSize]);
 
-  const startAIThinking = (baseMessage) => {
-    let dots = 0;
-    const maxDots = 6;
 
+  // seed initial history after intersections
+  useEffect(() => {
+    if (!intersections.length) return;
+    setHistory([getInitState()]);
+    setStep(0);
+  }, [intersections]);
+
+
+  // AI thinking animation
+  const startAIThinking = base => {
+    let dots = 0;
     aiThinkingInterval.current = setInterval(() => {
-      dots = (dots + 1) % (maxDots + 1);
-      setAiMessage(`${baseMessage}AI thinking${'.'.repeat(dots)}`);
+      dots = (dots + 1) % 7;
+      setAiMessage(`${base}\nAI thinking${'.'.repeat(dots)}`);
     }, 500);
   };
-
   const stopAIThinking = () => {
-    if (aiThinkingInterval.current) {
-      clearInterval(aiThinkingInterval.current);
-      aiThinkingInterval.current = null;
-    }
+    clearInterval(aiThinkingInterval.current);
+    aiThinkingInterval.current = null;
   };
-  
-  useEffect(() => {
-    if (gameOver) {
-      handleScoreClick();
-      stopAIThinking();
-    }
-  }, [gameOver]);
 
-  const handleUserMove = async (event) => {
-    if (gameOver) {
-      setAiMessage("Game is over.");
-      return;
-    }
-    if (currentStone !== 'black') {
-      setAiMessage("It's not your turn yet.");
-      return;
-    }
-    if (isAITurn) {
-      setAiMessage("AI is still thinking. Please wait...");
-      return;
-    }
-    setIsAITurn(true);
 
-    const nearest = handleBoardClick(event, intersections, boardRect, scaleWidth, scaleHeight, cellSize);
-    if (!nearest) {
-      setAiMessage("Click is invalid. Please try again.");
-      setIsAITurn(false); 
+  // user move handler (live vs manual)
+  const handleUserMove = async e => {
+    const nearest = handleBoardClick(e, intersections, boardRect, scaleWidth, scaleHeight, cellSize);
+    if (!nearest) return;
+
+
+    // manual research mode: local placement
+    /*if (isManualMode) {
+      const idx = intersections.findIndex(p => p.gridCol === nearest.gridCol && p.gridRow === nearest.gridRow);
+      if (manualBoard[idx]) return; // occupied
+      setManualBoard(mb => {
+        const next = [...mb];
+        next[idx] = { stone: manualStone, turn: manualTurn + 1 };
+        return next;
+      });
+      console.log(manualTurn, showTurnNumbers);
+      setManualTurn(t => t + 1);
+      console.log(manualTurn, showTurnNumbers);
+      setManualStone(s => (s === 'black' ? 'white' : 'black'));
       return;
-    }
+    }*/
+    // live gameplay
+    if (gameOver || currStone !== 'black' || isAITurn) return;
+    const userTurn = currTurn + 1;
+    startAIThinking(`You played at (${nearest.gridCol}, ${nearest.gridRow}). `);
+    //console.log("turn display...", currTurn);
 
-    const baseMessage = `You played at (${nearest.gridCol}, ${nearest.gridRow}). `;
-    startAIThinking(baseMessage); 
-
-    const moveResult = await userMove({
+    const result = await userMove({
       url: `${apiBaseUrl}/usermove`,
       col: nearest.gridCol,
       row: nearest.gridRow,
-      boardState,
-      turnCounter,
-      intersections,
+      boardState: currBoard,
+      turnCounter: userTurn,
+      intersections
     });
-
-    if (!moveResult.valid) {
-      stopAIThinking(); 
-      setAiMessage("Invalid user move. Please try again.");
-      setIsAITurn(false);
+    if (!result.valid) {
+      stopAIThinking();
+      setAiMessage('Invalid user move. Please try again.');
       return;
     }
 
-    const {
-      newBoardState,
-      moveIndex,
-      capturedCount
-    } = moveResult;
 
-    setBoardState(newBoardState);
+    const newState = {
+      boardState: result.newBoardState,
+      currentStone: 'white',
+      turn: userTurn,
+      capturedBlack: currCapB,
+      capturedWhite: currCapW + result.capturedCount
+    };
     setLatestBlackMove({ col: nearest.gridCol, row: nearest.gridRow });
-    setTurnCounter(turnCounter + 1);
-    setCurrentStone('white');
-    setLatestMoveIdx(moveIndex);
-    setCapturedWhite(capturedWhite + capturedCount);
+    setLatestMoveIdx(result.moveIndex);
 
-    handleAIMove(newBoardState);
+
+    setHistory(h => {
+      const next = pushToHistory(newState, h);
+      setStep(next.length - 1);
+      return next;
+    });
+
+
+    setIsAITurn(true);
+    handleAIMove(newState.boardState, userTurn);
   };
 
-  const handleAIMove = async (newBoardState) => {
+
+  // AI move
+  const handleAIMove = async (prevBoard, lastTurn) => {
     try {
-      const response = await fetch(`${apiBaseUrl}/aimove`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const resp = await fetch(`${apiBaseUrl}/aimove`, { method: 'POST' });
+      if (!resp.ok) throw new Error();
+      const data = await resp.json();
 
-      if (!response.ok) throw new Error('AI move failed');
-
-      const data = await response.json();
 
       setTimeout(() => {
         stopAIThinking();
+        let updated = [...prevBoard];
+        if (data.message !== 'AI passed.') {
+          const idx = intersections.findIndex(p => p.gridCol === data.aiMove.col && p.gridRow === data.aiMove.row);
+          updated[idx] = { stone: 'white', turn: lastTurn + 1 };
+          data.aiCapturedPoints.forEach(p => {
+            const i = intersections.findIndex(pt => pt.gridCol === p.col && pt.gridRow === p.row);
+            if (i !== -1) updated[i] = null;
+          });
 
-        if (data.gameOver) {
-          setAiMessage(data.message);
-          setGameOver(true);
-          return;
+
+          const aiTurn = lastTurn + 1;
+          const newState = {
+            boardState: updated,
+            currentStone: 'black',
+            turn: aiTurn,
+            capturedBlack: currCapB + data.aiCapturedPoints.length,
+            capturedWhite: currCapW
+          };
+          setLatestWhiteMove(data.aiMove);
+          setLatestMoveIdx(idx);
+
+
+          setHistory(h => {
+            const next = pushToHistory(newState, h);
+            setStep(next.length - 1);
+            return next;
+          });
         }
-
-        if (data.message === "AI passed.") {
-          setAiMessage("AI passed its turn.");
-          setCurrentStone('black');
-          setIsAITurn(false);
-          return;
-        }
-
-        setAiMessage(`AI played at (${data.aiMove.col}, ${data.aiMove.row})`);
-        const aiMoveIndex = intersections.findIndex(
-          (p) => p.gridCol === data.aiMove.col && p.gridRow === data.aiMove.row
-        );
-
-        const updatedBoard = [...newBoardState];
-        updatedBoard[aiMoveIndex] = { stone: 'white', turn: turnCounter + 1 };
-        setLatestWhiteMove({ col: data.aiMove.col, row: data.aiMove.row });
-
-        data.aiCapturedPoints.forEach(({ col, row }) => {
-          const idx = intersections.findIndex(p => p.gridCol === col && p.gridRow === row);
-          if (idx !== -1) updatedBoard[idx] = null;
-        });
-
-        setBoardState(updatedBoard);
-        setTurnCounter(turnCounter + 2);
-        setCurrentStone('black');
-        setLatestMoveIdx(aiMoveIndex);
-        setCapturedBlack(capturedBlack + data.aiCapturedPoints.length);
+        setAiMessage(data.message);
+        if (data.gameOver) setGameOver(true);
         setIsAITurn(false);
       }, 1500);
-    } catch (error) {
+    } catch {
       stopAIThinking();
-      setAiMessage("Failed to execute AI move.");
+      setAiMessage('Failed to execute AI move.');
       setIsAITurn(false);
     }
   };
 
+
+  // pass & resign remain live only
   const handlePass = async () => {
-    if (gameOver || currentStone !== 'black') return;
-
-    const baseMessage = "You passed your turn. ";
-    startAIThinking(baseMessage);
-
+    if (isManualMode || gameOver || currStone !== 'black') return;
+    startAIThinking('You passed your turn. ');
     try {
       await postSpecialMove({
-        moveType: "pass",
+        moveType: 'pass',
         url: `${apiBaseUrl}/usermove`,
         setAiMessage,
         setGameOver,
-        turnUpdateCallback: () => {
-          setAiMessage(baseMessage + "AI thinking");
-          setTurnCounter(turnCounter + 1);
-          setCurrentStone('white');
-          handleAIMove(boardState); // this will stop dots
-        }
+        turnUpdateCallback: () => handleAIMove(currBoard, currTurn + 1)
       });
-    } catch (err) {
+    } catch {
       stopAIThinking();
-      setAiMessage("Failed to process pass.");
-      setIsAITurn(false);
+      setAiMessage('Failed to process pass.');
     }
   };
-
-
   const handleResign = () => {
-    if (gameOver || currentStone !== 'black') return;
-    postSpecialMove({
-      moveType: "resign",
-      url: `${apiBaseUrl}/usermove`,
-      setAiMessage,
-      setGameOver
-    });
+    if (isManualMode || gameOver || currStone !== 'black') return;
+    postSpecialMove({ moveType: 'resign', url: `${apiBaseUrl}/usermove`, setAiMessage, setGameOver });
   };
 
-  const handleTurnToggle = () => {
-    setShowTurnNumbers(!showTurnNumbers);
-  };
 
+  // scoring remains live only
   const handleScoreClick = async () => {
-    if (showScores) {
-      setShowScores(false);
-      return;
-    }
-
-    const result = await fetchScoreData(`${apiBaseUrl}/scoring`);
-    if (!result.success) {
-      setAiMessage("Failed to execute score click.");
-      return;
-    }
-
-    const data = result.data;
-    if (data.resignstatus) {
-      setShowScores(false);
-      return;
-    }
-
-    setBlackScore(data.blackScore);
-    setWhiteScore(data.whiteScore);
-    setBlackTerritory(data.blackTerritory);
-    setWhiteTerritory(data.whiteTerritory);
-    if (gameOver) {
-      setAiMessage(`${data.winner} wins by ${data.winningMargin} points!`);
-    }
+    if (showScores) return setShowScores(false);
+    const res = await fetchScoreData(`${apiBaseUrl}/scoring`);
+    if (!res.success) return setAiMessage('Failed to score.');
+    const d = res.data;
+    setBlackScore(d.blackScore);
+    setWhiteScore(d.whiteScore);
+    setBlackTerritory(d.blackTerritory);
+    setWhiteTerritory(d.whiteTerritory);
+    if (gameOver) setAiMessage(`${d.winner} wins by ${d.winningMargin} points!`);
     setShowScores(true);
   };
 
-  const getClientPixels = (gridCol, gridRow) => {
-    return gridToClientPixels(gridCol, gridRow, intersections, scaleWidth, scaleHeight);
+
+  // manual/live toggle
+  const handleToggleManual = () => {
+    if (!isManualMode) {
+      setLastManualStep(step);
+      setIsManualMode(true);
+    } else {
+      setStep(lastManualStep);
+      setIsManualMode(false);
+    }
   };
+
+
+  // clear = rewind only
+  const handleClear = () => {
+    setStep(0);
+    setGameOver(false);
+  };
+
+
+  // jump to last
+  const handleJumpToLast = () => setStep(history.length - 1);
+
+
+  const displayBoard = isManualMode ? manualBoard : currBoard;
+  const displayMoveIdx = isManualMode ? null : latestMoveIdx;
+
+
+  const getClientPixels = (c, r) => gridToClientPixels(c, r, intersections, scaleWidth, scaleHeight);
+
 
   return (
     <div className={Gostyles.GameContainer}>
-      <TopLayer baseUrl={baseUrl} gameOver={gameOver} />
       <BottomLayer
-        capturedWhite={capturedWhite}
-        capturedBlack={capturedBlack}
+        capturedWhite={isManualMode ? currCapW : currCapW}
+        capturedBlack={isManualMode ? currCapB : currCapB}
         latestBlackMove={latestBlackMove}
         latestWhiteMove={latestWhiteMove}
         blackScore={blackScore}
@@ -313,18 +358,21 @@ function Go() {
         aiMessage={aiMessage}
         onPass={handlePass}
         onResign={handleResign}
-        onToggleTurns={handleTurnToggle}
+        onToggleTurns={() => setShowTurnNumbers(!showTurnNumbers)}
         onScore={handleScoreClick}
         showTurnNumbers={showTurnNumbers}
       >
         <GoBoardAI
+          key={`step-${step}-${isManualMode}`}
           boardRef={boardRef}
           boardImage={boardImage}
+          manualTurn={manualTurn}
+          isManualMode={isManualMode}
           handleUserMove={handleUserMove}
           handleImageLoad={handleImageLoad}
           intersections={intersections}
-          boardState={boardState}
-          latestMoveIdx={latestMoveIdx}
+          boardState={displayBoard}
+          latestMoveIdx={displayMoveIdx}
           cellSize={cellSize}
           getClientPixels={getClientPixels}
           showTurnNumbers={showTurnNumbers}
@@ -333,9 +381,23 @@ function Go() {
           blackTerritory={blackTerritory}
           whiteTerritory={whiteTerritory}
         />
+        <ControlPanel
+          step={step}
+          maxStep={history.length - 1}
+          isManualMode={isManualMode}
+          toggleType="manual-live"
+          onClear={handleClear}
+          onBack={() => setStep(stepBack(history, step))}
+          onBack10={() => setStep(stepBack10(history, step))}
+          onForward={() => setStep(stepForward(history, step))}
+          onForward10={() => setStep(stepForward10(history, step))}
+          onFull={handleJumpToLast}
+          onToggleManual={handleToggleManual}
+        />
       </BottomLayer>
     </div>
   );
 }
+
 
 export default Go;

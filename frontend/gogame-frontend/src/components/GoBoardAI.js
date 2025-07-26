@@ -1,11 +1,14 @@
 import React from 'react';
 import GBstyles from './GoBoardAI.module.css';
 
+
 function GoBoardAI({
   boardRef,
   boardImage,
   handleUserMove,
   handleImageLoad,
+  isManualMode,
+  manualTurn,
   intersections,
   boardState,
   latestMoveIdx,
@@ -29,11 +32,13 @@ function GoBoardAI({
           onLoad={handleImageLoad}
         />
 
+
         {intersections.map((intersection, index) => {
           const pixelCoord = getClientPixels(intersection.gridCol, intersection.gridRow);
           const stone = boardState[index];
           if (!stone) return null;
-
+          //console.log(stone.stone, stone.turn, index);
+          //console.log(boardState);
           return (
             <div
               key={index}
@@ -50,7 +55,13 @@ function GoBoardAI({
                 className={GBstyles.stone}
                 alt={stone.stone}
               />
-              {showTurnNumbers && (
+              {/*{isManualMode && (
+                <span className={GBstyles.turnNumber} style={{ fontSize: `${cellSize.height * 0.3}px` }}>
+                  {manualTurn}
+                 
+                </span>
+              )}*/}
+              {showTurnNumbers && stone.turn && (
                 <span className={GBstyles.turnNumber} style={{ fontSize: `${cellSize.height * 0.3}px` }}>
                   {stone.turn}
                 </span>
@@ -58,6 +69,7 @@ function GoBoardAI({
             </div>
           );
         })}
+
 
         {showScores && blackTerritory.map((coord, i) => {
           const { x, y } = getClientPixels(coord.col, coord.row);
@@ -74,6 +86,7 @@ function GoBoardAI({
             />
           );
         })}
+
 
         {showScores && whiteTerritory.map((coord, i) => {
           const { x, y } = getClientPixels(coord.col, coord.row);
@@ -94,5 +107,6 @@ function GoBoardAI({
     </div>
   );
 }
+
 
 export default GoBoardAI;

@@ -27,4 +27,14 @@
 
 .dropdown {
   font-size: 16px;
+  width: 200px;
+  height: auto;
+  min-height: 120px; /* ensures enough room for 5 items */
+  border: 2px solid white;
+  background-color: white;
+  color: black;
+  padding: 4px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: block;
 }

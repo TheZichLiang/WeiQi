@@ -21,6 +21,7 @@ function SgfViewer() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
+    console.log("BASE URL:", baseUrl);  
     fetch(`${baseUrl}/data/games.txt`)
       .then(r => r.text())
       .then(txt => {

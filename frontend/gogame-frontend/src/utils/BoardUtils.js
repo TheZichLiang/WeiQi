@@ -20,7 +20,7 @@ export function findNearestIntersection(x, y, intersections, cellSize, threshold
     const d = Math.hypot(dx, dy);
     if (d < bestDist) { bestDist = d; bestIdx = i; }
   });
-  console.log("maxDist:", maxDist, "bestDist:", bestDist);
+  //console.log("maxDist:", maxDist, "bestDist:", bestDist);
   return bestDist < maxDist ? bestIdx : -1;
 }
 

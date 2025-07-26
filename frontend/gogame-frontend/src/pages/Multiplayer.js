@@ -1,6 +1,8 @@
-// Multiplayer.js (Refactored to use BoardPanel)
-import React, { useEffect, useState } from 'react';
+// Multiplayer.js
+import React, { useEffect, useState, useRef } from 'react';
 import { useGameState } from '../components/GameStateContext';
+import TopLayer from '../components/TopLayer';
+import BottomLayer from '../components/BottomLayer';
 import BoardPanel from '../components/BoardPanel';
 import styles from './Multiplayer.module.css';
 
@@ -11,6 +13,13 @@ function Multiplayer() {
   const [playerColor, setPlayerColor] = useState('');
   const [currentTurn, setCurrentTurn] = useState('');
   const [liveBoardState, setLiveBoardState] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
+
+  const [capturedBlack, setCapturedBlack] = useState(0);
+  const [capturedWhite, setCapturedWhite] = useState(0);
+  const [latestBlackMove, setLatestBlackMove] = useState(null);
+  const [latestWhiteMove, setLatestWhiteMove] = useState(null);
+  const [aiMessage, setAiMessage] = useState('');
 
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -31,27 +40,6 @@ function Multiplayer() {
     }
   };
 
-  useEffect(() => {
-    if (signedIn) {
-      const interval = setInterval(refreshBoard, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [signedIn]);
-
-  const handleResign = async () => {
-    try {
-      const res = await fetch(`${apiBaseUrl}/game/resign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId }),
-      });
-      const data = await res.json();
-      alert(`${data.message}\nWinner: ${data.winner}`);
-    } catch {
-      alert('Resignation failed');
-    }
-  };
-
   const refreshBoard = async () => {
     try {
       const res = await fetch(`${apiBaseUrl}/game/state?playerId=${playerId}`);
@@ -67,9 +55,31 @@ function Multiplayer() {
     }
   };
 
-  return (
-    <div className={styles.container}>
-      {!signedIn ? (
+  useEffect(() => {
+    if (signedIn) {
+      const interval = setInterval(refreshBoard, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [signedIn]);
+
+  const handleResign = async () => {
+    try {
+      const res = await fetch(`${apiBaseUrl}/game/resign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId }),
+      });
+      const data = await res.json();
+      setAiMessage(data.message);
+      setGameOver(true);
+    } catch {
+      alert('Resignation failed');
+    }
+  };
+
+  if (!signedIn) {
+    return (
+      <div className={styles.container}>
         <div className={styles.joinRoomBox}>
           <h2>Join Game</h2>
           <input
@@ -80,24 +90,38 @@ function Multiplayer() {
           />
           <button onClick={handleSignIn}>Join</button>
         </div>
-      ) : (
-        <>
-          <div className={styles.gameArea}>
-            <div className={styles.leftColumn}>
-              <button className={styles.resignButton} onClick={handleResign}>Resign</button>
-            </div>
-            <div className={styles.rightColumn}>
-              <BoardPanel
-                gameHistory={liveBoardState}
-                toggleType="manual-live"
-                playerId={playerId}
-                playerColor={playerColor}
-                currentTurn={currentTurn}
-              />
-            </div>
-          </div>
-        </>
-      )}
+      </div>
+    );
+  }
+
+  const baseUrl = process.env.REACT_APP_BASE_URL;
+
+  return (
+    <div className={styles.GameContainer}>
+      <TopLayer baseUrl={baseUrl} gameOver={gameOver} />
+      <BottomLayer
+        capturedWhite={capturedWhite}
+        capturedBlack={capturedBlack}
+        latestBlackMove={latestBlackMove}
+        latestWhiteMove={latestWhiteMove}
+        blackScore={0}
+        whiteScore={0}
+        showScores={false}
+        aiMessage={aiMessage}
+        onPass={() => {}}
+        onResign={handleResign}
+        onToggleTurns={() => {}}
+        onScore={() => {}}
+        showTurnNumbers={false}
+      >
+        <BoardPanel
+          gameHistory={liveBoardState}
+          toggleType="manual-live"
+          playerId={playerId}
+          playerColor={playerColor}
+          currentTurn={currentTurn}
+        />
+      </BottomLayer>
     </div>
   );
 }

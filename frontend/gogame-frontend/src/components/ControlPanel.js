@@ -14,26 +14,22 @@ function ControlPanel({
   onToggleManual,
   toggleType
 }) {
-  // Disable step buttons if watching live game
-  const disableStepButtons = toggleType === 'manual-live' && !isManualMode;
-
-  // Always disable CLEAR and FULL in manual mode
-  const disableClearFull = isManualMode;
+  const disable = !isManualMode;
 
   return (
     <div className={styles.controls}>
       <div className={styles['controls-left']}>
-        <button className={styles.rectButton} disabled={disableClearFull} onClick={onClear}>CLEAR</button>
+        <button className={styles.rectButton} onClick={onClear}>CLEAR</button>
       </div>
       <div className={styles['controls-center']}>
         <button
           className={styles.iconButton}
-          disabled={disableStepButtons || step <= 0}
+          disabled={step <= 0 }
           onClick={onBack10}
           title="Back 10">⏮️</button>
         <button
           className={styles.iconButton}
-          disabled={disableStepButtons || step <= 0}
+          disabled={step <= 0 }
           onClick={onBack}
           title="Back 1">◀️</button>
         <span className={styles.moveCounter}>
@@ -41,24 +37,24 @@ function ControlPanel({
         </span>
         <button
           className={styles.iconButton}
-          disabled={disableStepButtons || step >= maxStep}
+          disabled={step >= maxStep}
           onClick={onForward}
           title="Forward 1">▶️</button>
         <button
           className={styles.iconButton}
-          disabled={disableStepButtons || step >= maxStep}
+          disabled={step >= maxStep }
           onClick={onForward10}
           title="Forward 10">⏭️</button>
       </div>
       <div className={styles['controls-right']}>
-        <button className={styles.rectButton} disabled={disableClearFull} onClick={onFull}>FULL</button>
+        <button className={styles.rectButton} onClick={onFull}>FULL</button>
         {onToggleManual && toggleType === 'manual-auto' && (
           <button className={styles.rectButton} onClick={onToggleManual}>
             {isManualMode ? 'Auto' : 'Manual'}
           </button>
         )}
         {onToggleManual && toggleType === 'manual-live' && (
-          <button className={styles.rectButton} onClick={onToggleManual}>
+          <button className={styles.rectButton} disabled={disable} onClick={onToggleManual}>
             {isManualMode ? 'Live' : 'Manual'}
           </button>
         )}
