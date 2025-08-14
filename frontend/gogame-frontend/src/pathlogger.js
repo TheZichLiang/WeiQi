@@ -1,13 +1,22 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
+/*
+WHY PATHLOGGER EXISTS:
+- Provides a centralized way to monitor route changes.
+- Useful for debugging navigation issues during development.
+- Can later be expanded to:
+    - Send analytics events to services like Google Analytics or Mixpanel.
+    - Track user navigation for session replay tools.
+- Doesn't render UI, but is purely a side-effect component for logging/tracking.
+*/
 function PathLogger() {
+  // Hook from React Router to access the current location object
   const location = useLocation();
-
   useEffect(() => {
+    // Always log the current path whenever the route changes
     console.log('Current path:', location.pathname);
-
-    // Add conditional logging for specific paths
+    // Custom console messages for specific pages
     if (location.pathname === '/playgo') {
       console.log('Accessing Play Go page');
     } else if (location.pathname === '/gorules') {
@@ -22,8 +31,8 @@ function PathLogger() {
       console.log('Accessing an undefined or other page');
     }
   }, [location]);
-
-  return null; // This component does not render anything
+  // Effect reruns every time the path changes
+  return null; // This component does not render anything to the UI
 }
 
 export default PathLogger;

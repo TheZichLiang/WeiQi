@@ -1,13 +1,42 @@
+/* ======================
+   GLOBAL PAGE RESET & FONT SETUP
+   ====================== */
 body {
-  margin: 0;
+  margin: 0; 
+  /* Remove default browser margin so layout can start flush at edges */
+
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+  /* 
+     Font stack uses system UI fonts first for speed and native look:
+       -apple-system, BlinkMacSystemFont → Mac & iOS
+       'Segoe UI' → Windows
+       'Roboto' → Android
+       'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue' → various Linux & fallback environments
+       sans-serif → final generic fallback
+  */
+
   -webkit-font-smoothing: antialiased;
+  /* Improves font rendering on WebKit browsers (Chrome, Safari) by smoothing edges */
+
   -moz-osx-font-smoothing: grayscale;
+  /* Improves font rendering on macOS Firefox by using grayscale antialiasing */
 }
 
+/* ======================
+   INLINE CODE FONT
+   ====================== */
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+  /*
+     Monospace font stack for code elements:
+       source-code-pro → Adobe / modern code font
+       Menlo → macOS
+       Monaco → older macOS
+       Consolas → Windows
+       'Courier New' → universal fallback
+       monospace → final generic fallback
+  */
 }
