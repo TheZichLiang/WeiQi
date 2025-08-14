@@ -1,0 +1,63 @@
+.faqContainer {
+  min-height: 100vh;                                                                      /* Ensure the FAQ section takes up the full viewport height */
+  padding: 3rem 1rem;                                                                     /* Add padding for spacing */
+  background-color: #5e1f00;                                                            /* Dark brown background color */
+  background-image: url("https://www.transparenttextures.com/patterns/retina-wood.png");  /* Wood texture background */
+  background-repeat: repeat;                                                              /* Repeat the background image */
+  background-attachment: fixed;                                                           /* Fix the background image */
+  display: flex;                                                                          /* Use flexbox for layout */
+  justify-content: center;                                                                /* Center the content horizontally */
+  align-items: center;                                                                    /* Center the content vertically */
+}
+
+.faqContent {
+  background-color: tan;                                                              /* Tan background color */
+  border-radius: 12px;                                                                  /* Rounded corners */
+  padding: 2rem 2.5rem;                                                                 /* Add padding for spacing */
+  max-width: 800px;                                                                     /* Max width */
+  width: 100%;                                                                          /* Full width */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);                                         /* Add shadow for depth */
+}
+
+.faqTitle {
+  text-align: center;                                                                   /* Center the title text */
+  font-size: 2.2rem;                                                                    /* Title font size */
+  color: #333;                                                                        /* Title color */
+  margin-bottom: 1.5rem;                                                                /* Title bottom margin */
+  font-weight: 700;                                                                     /* Title font weight */
+}
+
+.faqItem {
+  border-bottom: 1px solid #ccc;                                                      /* Item bottom border */
+  padding: 1rem 0;                                                                      /* Item padding */
+}
+
+.faqQuestion {
+  background: none;                                                                     /* Question background */
+  border: none;                                                                         /* No border */
+  width: 100%;                                                                          /* Full width */
+  text-align: left;                                                                     /* Left align text */
+  font-size: 1.2rem;                                                                    /* Question font size */
+  font-weight: 600;                                                                     /* Question font weight */
+  color: #6a4e2d;                                                                     /* Question color */
+  cursor: pointer;                                                                      /* Pointer cursor */
+  display: flex;                                                                        /* Flexbox layout */
+  justify-content: space-between;                                                       /* Space between items */
+  align-items: center;                                                                  /* Center items vertically */         
+}
+
+.faqQuestion:focus {
+  outline: none;                                                                        /* Remove outline */
+}
+
+.icon {
+  font-size: 1.5rem;                                                                    /* Icon font size */
+  color: #6a4e2d;                                                                     /* Icon color */
+}
+
+.answer {
+  margin-top: 0.5rem;                                                                   /* Answer top margin */
+  color: #444;                                                                        /* Answer color */
+  font-size: 1rem;                                                                      /* Answer font size */
+  line-height: 1.6;                                                                     /* Answer line height */
+}

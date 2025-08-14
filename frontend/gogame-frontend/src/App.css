@@ -1,63 +1,172 @@
+/* ======================
+   GLOBAL APP CONTAINER
+   ====================== */
 .App{
-    position: relative;
-    height: 100vh;
-    width: 100vw;
-    background-size: 100vw 100vh;
-    background-repeat: no-repeat;
-    background-position: center;
+    display: flex;              /* Use flex so layout flows vertically */
+    flex-direction: column;     /* Stack navbar, content, footer top-to-bottom */
+    height: 100vh;              /* Full viewport height */
+    overflow: hidden;           /* Prevent scrollbars for clean fixed layout */
+}
+
+/* ======================
+   NAVBAR STUFF
+   ====================== */
+.navbar-container {             
+  display: flex;                                /* Align logo and links side-by-side */
+  justify-content: space-between;               /* Push logo left, links right, give space in between */
+  align-items: center;                          /* Center items vertically */
+  background-color: #6a4e2d;                  /* Warm lighter brown background */
+  font-family: 'Playfair Display', serif;       /* Elegant serif font for navbar */
+  padding: 0.5rem 6.5rem;                       /* Horizontal padding for breathing room */
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;                  /* Ensure logo is vertically aligned */
+}
+
+.logo {
+  height: 60px;                         /* Fixed height for logo */ 
+  width: auto;                          /* Maintain aspect ratio */ 
+}
+
+.navbar-links {
+  display: flex;
+  gap: 4rem;                            /* Space out links evenly */    
+  font-size: 1.25rem;                   /* Slightly larger font for readability */
+}
+
+.navbar-links a{
+    color: white;                             /* High contrast against dark background */ 
+    text-decoration: none;                      /* Remove underline for cleaner look*/
+    font-weight: bold;                          /* Bold text for navbar link emphasis */    
+    transition: color 0.2s ease;                /* Smooth color transition on hover */
+}
+
+.navbar-links a:hover {
+    color: #ffd700;                             /* Gold color on hover for visual feedback */
+    text-shadow: 0 0 4px #fff8dc;               /* Subtle glow effect on hover */
+}
+
+/* ======================
+   CONTENTS (Main body)
+   ====================== */
+.content-section{
+    display: flex;                                                                              /* Use flex to align hero section and image side-by-side */
+    justify-content: space-between;                                                             /* Space out hero section and image evenly */
+    align-items: center;                                                                        /* Center items vertically */
+    background: radial-gradient(circle at center, #caa26a 0%, #6a4e2d 100%);                /* Radial gradient for a warm, inviting background */
+    gap: 2rem;                                                                                  /* Space between hero section and image */
+    padding: 2rem;                                                                              /* Padding around content for breathing room */
+    overflow: hidden;                                                                           /* Prevent overflow for clean layout */
+}
+
+.hero-section {
+    flex: 1;                                      /* make available space equally with custom Go image */
+    display: flex;
+    align-items: center;      
+    justify-content: center; 
+    font-family: 'Playfair Display', serif;        
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;                        /* Stack title, text, and buttons vertically */           
+    align-items: center;                           /* Center content horizontally */
+    text-align: center;                            /* Center text within the hero section */             
+    max-width: 600px;                              /* Avoid super-wide text for readability */        
+    animation: fadeInUp 0.8s ease forwards;        /* Fade-in animation for hero content */
+    opacity: 0;                                    /* Start invisible for animation */                     
+}
+
+/* Fade-in animation for hero text */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;                   
+        transform: translateY(20px);  /* Slight upward motion */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-content h1 {
+    font-size: 4rem;                                              /* Large font for main title */
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #ffffff;                                             /* High contrast white for readability */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);                /* Subtle shadow for depth */
+}
+
+.hero-content p {
+    margin-bottom: 1rem; 
+    font-size: 1.25rem;
+    font-style: italic;                         /* Italic for emphasis */   
+    line-height: 1.6;
+    max-width: 500px;
+    color: #e0e0e0;                          /* Light gray for contrast against dark background */                
+}
+
+.image-container{
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* ======================
+   IMAGE CONTAINER (Go board image)
+   ====================== */
+.image-container img {
+    width: auto;
+    height: auto;
+    max-height: 80vh;                               /* Scale to fit viewport height */        
+    object-fit: contain;                            /* Prevent distortion */
+    border: 10px solid black;                     /* Thick border for emphasis */ 
+    border-radius: 20px;                            /* Rounded corners for a softer look */         
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);      /* Depth for focus */
+}
+
+/* ======================
+   BUTTONS
+   ====================== */
+.button-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;                                      /* Space between buttons */
+    margin-top: 2rem;
+}
+
+.button-container button {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: black;                                                     /* Dark text for contrast */                                
+    background: linear-gradient(to bottom, #eaeaea, #888);          /* Gradient for depth */
+    border: 4px solid #333;                                           /* Dark border for definition */                 
+    border-radius: 12px;
+    width: 240px;
+    height: 70px;
+    cursor: pointer;                                                    /* Pointer cursor for interactivity */              
+    transition: all 0.2s ease;                                          /* Smooth transitions for hover effects */
+    font-family: 'Play', sans-serif;                                    /* Use a sans-serif font for buttons */             
+    letter-spacing: 1px;
+}
+
+.button-container button:hover {
+    background-color: white;                                            /* Lighter background on hover for contrast */      
+    color: rgb(148, 48, 0);                                             /* Darker text on hover for visibility */                       
+    transform: translateY(-2px);                                          /* Slight upward motion on hover for depth */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);                          /* Subtle shadow for depth on hover */                
+}
+
+/* ======================
+   FOOTER
+   ====================== */
+.footer {
+    background-color: #6a4e2d;
+    color: #ccc;
     text-align: center;
-}
-
-.app-h1{
-    position: absolute;
-    transform: translateX(-53%);
-    left: 50%;
-    top: -8%;
-    font-size: 10vh;
-    font-weight: bold;
-    font-style: italic;
-    color: rgb(148,48,0);
-    -webkit-text-stroke: 5px black;
-}
-
-.buttongroup{
-    position: absolute;
-    left: 50%;
-    bottom: 10%;
-    transform: translateX(-54%);
-}
-
-.buttongroup a:first-child button{
-    font-size: 50px;
-    font-weight: bold;
-    width: 300px;
-    height: 150px;
-    margin-bottom: 70px;
-}
-
-.buttongroup button{
-    display: block;
-    font-size: 23px;
-    font-weight: bold;
-    color: black;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.9), #404040);
-    border: 10px solid black;
-    border-radius: 10%;
-    width: 300px;
-    height: 80px;
-    cursor: pointer; 
-    margin-top: 5px;
-}
-
-.buttongroup button:hover{
-    background-color: white;
-    color: rgb(148,48,0);
-}
-
-h2{
-    position: absolute;
-    transform: translateX(-50%);
-    left: 50%;
-    bottom: 0%;
-    color: white;
+    padding: 1rem 2rem;                                                 /* Padding for footer */            
+    font-size: 1rem;                                                    /* Smaller font for footer */
 }
